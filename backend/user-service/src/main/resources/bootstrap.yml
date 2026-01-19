@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: user-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR}
+        namespace: vibe-coding
+        group: DEFAULT_GROUP
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+      config:
+        server-addr: ${NACOS_SERVER_ADDR}
+        namespace: vibe-coding
+        group: DEFAULT_GROUP
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+        file-extension: yml
+        shared-configs:
+          - data-id: common.yml
+            refresh: true
+  profiles:
+    active: dev

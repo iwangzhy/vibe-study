@@ -1,0 +1,37 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # 用户服务路由
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/user/**
+
+      # 全局跨域配置
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns: "*"  # 使用 allowed-origin-patterns 替代 allowed-origins
+            allowed-methods: "*"
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
+
+# JWT配置
+jwt:
+  secret: vibe-social-media-secret-key-2024
+  expiration: 1800000  # 30分钟
+  refresh-expiration: 604800000  # 7天
+
+# 白名单配置（不需要鉴权的路径）
+whitelist:
+  paths:
+    - /api/user/auth/**  # 所有认证相关接口（登录、注册、发送验证码等）
