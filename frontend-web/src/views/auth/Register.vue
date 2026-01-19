@@ -34,11 +34,31 @@
           :rules="registerRules"
           class="register-form"
         >
-          <el-form-item prop="phone">
+          <el-form-item prop="username">
             <el-input
-              v-model="registerForm.phone"
-              placeholder="手机号"
-              prefix-icon="Phone"
+              v-model="registerForm.username"
+              placeholder="用户名（3-20位，字母数字下划线）"
+              prefix-icon="User"
+              size="large"
+              clearable
+            />
+          </el-form-item>
+
+          <el-form-item prop="nickname">
+            <el-input
+              v-model="registerForm.nickname"
+              placeholder="昵称"
+              prefix-icon="Star"
+              size="large"
+              clearable
+            />
+          </el-form-item>
+
+          <el-form-item prop="email">
+            <el-input
+              v-model="registerForm.email"
+              placeholder="邮箱"
+              prefix-icon="Message"
               size="large"
               clearable
             />
@@ -48,8 +68,8 @@
             <div class="code-input-wrapper">
               <el-input
                 v-model="registerForm.code"
-                placeholder="验证码"
-                prefix-icon="Message"
+                placeholder="邮箱验证码"
+                prefix-icon="Key"
                 size="large"
                 clearable
                 style="flex: 1;"
@@ -69,19 +89,7 @@
             <el-input
               v-model="registerForm.password"
               type="password"
-              placeholder="设置密码（6-20位）"
-              prefix-icon="Lock"
-              size="large"
-              show-password
-              clearable
-            />
-          </el-form-item>
-
-          <el-form-item prop="confirmPassword">
-            <el-input
-              v-model="registerForm.confirmPassword"
-              type="password"
-              placeholder="确认密码"
+              placeholder="设置密码（6-20位，包含字母和数字）"
               prefix-icon="Lock"
               size="large"
               show-password
@@ -125,68 +133,85 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { register, sendCode } from '@/api/user'
+import { useUserStore } from '@/store/user'
+import { register, sendEmailCode, type RegisterRequest } from '@/api/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 const registerFormRef = ref<FormInstance>()
 const loading = ref(false)
 const countdown = ref(0)
 const agreeTerms = ref(false)
 
-const registerForm = reactive({
-  phone: '',
+const registerForm = reactive<RegisterRequest>({
+  username: '',
+  nickname: '',
+  email: '',
   code: '',
-  password: '',
-  confirmPassword: ''
+  password: ''
 })
 
-const validatePhone = (rule: any, value: any, callback: any) => {
+const validateUsername = (_rule: any, value: any, callback: any) => {
   if (!value) {
-    callback(new Error('请输入手机号'))
-  } else if (!/^1[3-9]\d{9}$/.test(value)) {
-    callback(new Error('请输入正确的手机号'))
+    callback(new Error('请输入用户名'))
+  } else if (!/^[a-zA-Z0-9_]{3,20}$/.test(value)) {
+    callback(new Error('用户名为3-20位字母、数字或下划线'))
   } else {
     callback()
   }
 }
 
-const validateConfirmPassword = (rule: any, value: any, callback: any) => {
+const validateEmail = (_rule: any, value: any, callback: any) => {
   if (!value) {
-    callback(new Error('请再次输入密码'))
-  } else if (value !== registerForm.password) {
-    callback(new Error('两次输入密码不一致'))
+    callback(new Error('请输入邮箱'))
+  } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+    callback(new Error('请输入正确的邮箱格式'))
+  } else {
+    callback()
+  }
+}
+
+const validatePassword = (_rule: any, value: any, callback: any) => {
+  if (!value) {
+    callback(new Error('请输入密码'))
+  } else if (value.length < 6 || value.length > 20) {
+    callback(new Error('密码长度为6-20位'))
+  } else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]*$/.test(value)) {
+    callback(new Error('密码必须包含字母和数字'))
   } else {
     callback()
   }
 }
 
 const registerRules: FormRules = {
-  phone: [{ required: true, validator: validatePhone, trigger: 'blur' }],
-  code: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度为6-20位', trigger: 'blur' }
+  username: [{ required: true, validator: validateUsername, trigger: 'blur' }],
+  nickname: [
+    { required: true, message: '请输入昵称', trigger: 'blur' },
+    { min: 1, max: 50, message: '昵称长度为1-50位', trigger: 'blur' }
   ],
-  confirmPassword: [
-    { required: true, validator: validateConfirmPassword, trigger: 'blur' }
-  ]
+  email: [{ required: true, validator: validateEmail, trigger: 'blur' }],
+  code: [
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { len: 6, message: '验证码为6位数字', trigger: 'blur' }
+  ],
+  password: [{ required: true, validator: validatePassword, trigger: 'blur' }]
 }
 
 // 发送验证码
 const handleSendCode = async () => {
-  if (!registerForm.phone) {
-    ElMessage.warning('请先输入手机号')
+  if (!registerForm.email) {
+    ElMessage.warning('请先输入邮箱')
     return
   }
 
-  if (!/^1[3-9]\d{9}$/.test(registerForm.phone)) {
-    ElMessage.warning('请输入正确的手机号')
+  if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(registerForm.email)) {
+    ElMessage.warning('请输入正确的邮箱格式')
     return
   }
 
   try {
-    await sendCode(registerForm.phone)
-    ElMessage.success('验证码已发送')
+    await sendEmailCode({ email: registerForm.email })
+    ElMessage.success('验证码已发送至您的邮箱')
     
     // 开始倒计时
     countdown.value = 60
@@ -214,9 +239,13 @@ const handleRegister = async () => {
     if (valid) {
       try {
         loading.value = true
-        await register(registerForm)
-        ElMessage.success('注册成功，请登录')
-        router.push('/login')
+        const res = await register(registerForm)
+        
+        // 注册成功后自动登录
+        userStore.setLoginInfo(res.data)
+        
+        ElMessage.success('注册成功')
+        router.push('/home')
       } catch (error) {
         console.error('Register error:', error)
       } finally {

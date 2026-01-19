@@ -189,12 +189,14 @@ export interface FollowItem extends UserInfo {
 /**
  * 消息类型
  */
-export enum MessageType {
-  TEXT = 'text',
-  IMAGE = 'image',
-  VIDEO = 'video',
-  SYSTEM = 'system'
-}
+export const MessageType = {
+  TEXT: 'text',
+  IMAGE: 'image',
+  VIDEO: 'video',
+  SYSTEM: 'system'
+} as const
+
+export type MessageType = typeof MessageType[keyof typeof MessageType]
 
 /**
  * 消息信息
@@ -227,13 +229,15 @@ export interface Conversation {
 /**
  * 通知类型
  */
-export enum NotificationType {
-  LIKE = 'like', // 点赞
-  COMMENT = 'comment', // 评论
-  FOLLOW = 'follow', // 关注
-  MENTION = 'mention', // @提及
-  SYSTEM = 'system' // 系统通知
-}
+export const NotificationType = {
+  LIKE: 'like', // 点赞
+  COMMENT: 'comment', // 评论
+  FOLLOW: 'follow', // 关注
+  MENTION: 'mention', // @提及
+  SYSTEM: 'system' // 系统通知
+} as const
+
+export type NotificationType = typeof NotificationType[keyof typeof NotificationType]
 
 /**
  * 通知信息
@@ -254,12 +258,14 @@ export interface Notification {
 /**
  * 搜索类型
  */
-export enum SearchType {
-  ALL = 'all',
-  USER = 'user',
-  POST = 'post',
-  TOPIC = 'topic'
-}
+export const SearchType = {
+  ALL: 'all',
+  USER: 'user',
+  POST: 'post',
+  TOPIC: 'topic'
+} as const
+
+export type SearchType = typeof SearchType[keyof typeof SearchType]
 
 /**
  * 搜索参数

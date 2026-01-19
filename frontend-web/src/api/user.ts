@@ -1,66 +1,80 @@
+/**
+ * 用户模块 API
+ */
+
 import request from '@/utils/request'
-import type {
-  LoginParams,
-  LoginResponse,
-  RegisterParams,
-  UserInfo,
-  UserDetail,
-  ApiResponse
-} from '@/types'
+import type { ApiResponse } from '@/types'
 
-// ==================== 认证相关 ====================
+// ==================== 类型定义 ====================
 
 /**
- * 用户登录
+ * 用户信息 VO
  */
-export const login = (data: LoginParams) => {
-  return request.post<ApiResponse<LoginResponse>>('/api/user/auth/login', data)
+export interface UserInfoVO {
+  id: number
+  username: string
+  nickname: string
+  avatar: string
+  email?: string
+  phone?: string
+  gender: 0 | 1 | 2 // 0-未知，1-男，2-女
+  birthday?: string
+  bio?: string
+  status: 0 | 1 // 0-禁用，1-正常
+  followingCount: number
+  followerCount: number
+  isFollowing: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 /**
- * 用户注册
+ * 登录请求
  */
-export const register = (data: RegisterParams) => {
-  return request.post<ApiResponse<void>>('/api/user/auth/register', data)
+export interface LoginRequest {
+  account: string
+  password: string
 }
 
 /**
- * 发送验证码
+ * 登录响应
  */
-export const sendCode = (phone: string) => {
-  return request.post<ApiResponse<void>>('/api/user/auth/send-code', { phone })
+export interface LoginResponse {
+  token: string
+  userInfo: UserInfoVO
 }
 
 /**
- * 退出登录
+ * 注册请求
  */
-export const logout = () => {
-  return request.post<ApiResponse<void>>('/api/user/auth/logout')
+export interface RegisterRequest {
+  username: string
+  password: string
+  nickname: string
+  email: string
+  code: string
 }
 
 /**
- * 刷新Token
+ * 发送验证码请求
  */
-export const refreshToken = (refreshToken: string) => {
-  return request.post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
-    '/api/user/auth/refresh-token',
-    { refreshToken }
-  )
-}
-
-// ==================== 用户信息 ====================
-
-/**
- * 获取用户信息
- */
-export const getUserInfo = (userId: number) => {
-  return request.get<ApiResponse<UserDetail>>(`/api/user/info/${userId}`)
+export interface SendCodeRequest {
+  email: string
 }
 
 /**
- * 更新用户信息参数
+ * 修改密码请求
  */
-export interface UpdateUserInfoParams {
+export interface ChangePasswordRequest {
+  oldPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
+/**
+ * 更新用户信息请求
+ */
+export interface UpdateUserRequest {
   nickname?: string
   avatar?: string
   gender?: 0 | 1 | 2
@@ -68,79 +82,71 @@ export interface UpdateUserInfoParams {
   bio?: string
 }
 
+// ==================== 认证接口 ====================
+
 /**
- * 更新用户信息
+ * 用户登录
  */
-export const updateUserInfo = (data: UpdateUserInfoParams) => {
-  return request.put<ApiResponse<UserInfo>>('/api/user/info', data)
+export const login = (data: LoginRequest) => {
+  return request.post<ApiResponse<LoginResponse>>('/api/user/auth/login', data)
 }
 
 /**
- * 修改密码参数
+ * 用户注册
  */
-export interface ChangePasswordParams {
-  oldPassword: string
-  newPassword: string
+export const register = (data: RegisterRequest) => {
+  return request.post<ApiResponse<LoginResponse>>('/api/user/auth/register', data)
+}
+
+/**
+ * 发送邮箱验证码
+ */
+export const sendEmailCode = (data: SendCodeRequest) => {
+  return request.post<ApiResponse<void>>('/api/user/auth/send-code', data)
 }
 
 /**
  * 修改密码
  */
-export const changePassword = (data: ChangePasswordParams) => {
-  return request.put<ApiResponse<void>>('/api/user/password', data)
+export const changePassword = (data: ChangePasswordRequest) => {
+  return request.put<ApiResponse<void>>('/api/user/auth/change-password', data)
+}
+
+// ==================== 用户信息接口 ====================
+
+/**
+ * 获取用户信息
+ */
+export const getUserInfo = (id: number) => {
+  return request.get<ApiResponse<UserInfoVO>>(`/api/user/info/${id}`)
 }
 
 /**
- * 上传头像
+ * 获取当前登录用户信息
  */
-export const uploadAvatar = (file: File) => {
-  const formData = new FormData()
-  formData.append('file', file)
-  return request.post<ApiResponse<{ url: string }>>('/api/user/avatar', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
+export const getCurrentUserInfo = () => {
+  return request.get<ApiResponse<UserInfoVO>>('/api/user/info/current')
 }
 
-// ==================== 关注相关 ====================
+/**
+ * 更新用户信息
+ */
+export const updateUserInfo = (data: UpdateUserRequest) => {
+  return request.put<ApiResponse<UserInfoVO>>('/api/user/info', data)
+}
+
+// ==================== 用户关系接口 ====================
 
 /**
  * 关注用户
  */
-export const followUser = (userId: number) => {
-  return request.post<ApiResponse<void>>(`/api/user/follow/${userId}`)
+export const followUser = (id: number) => {
+  return request.post<ApiResponse<void>>(`/api/user/follow/${id}`)
 }
 
 /**
- * 取消关注
+ * 取消关注用户
  */
-export const unfollowUser = (userId: number) => {
-  return request.delete<ApiResponse<void>>(`/api/user/follow/${userId}`)
+export const unfollowUser = (id: number) => {
+  return request.delete<ApiResponse<void>>(`/api/user/follow/${id}`)
 }
-
-/**
- * 获取关注列表
- */
-export const getFollowList = (userId: number, page: number = 1, pageSize: number = 20) => {
-  return request.get<ApiResponse<{ list: UserInfo[]; total: number }>>(
-    `/api/user/follow/${userId}`,
-    { page, pageSize }
-  )
-}
-
-/**
- * 获取粉丝列表
- */
-export const getFansList = (userId: number, page: number = 1, pageSize: number = 20) => {
-  return request.get<ApiResponse<{ list: UserInfo[]; total: number }>>(
-    `/api/user/fans/${userId}`,
-    { page, pageSize }
-  )
-}
-
-/**
- * 获取共同关注
- */
-export const getCommonFollows = (userId: number) => {
-  return request.get<ApiResponse<UserInfo[]>>(`/api/user/common-follows/${userId}`)
-}
-

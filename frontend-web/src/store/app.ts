@@ -18,8 +18,9 @@ interface AppState {
  * Getters 类型定义
  */
 interface AppGetters {
-  isMobile: boolean
-  isDark: boolean
+  isMobile: (state: AppState) => boolean
+  isDark: (state: AppState) => boolean
+  [key: string]: (state: AppState) => any
 }
 
 /**
@@ -50,15 +51,15 @@ export const useAppStore = defineStore<'app', AppState, AppGetters, AppActions>(
     /**
      * 是否为移动端
      */
-    isMobile(): boolean {
-      return this.device === 'mobile'
+    isMobile(state): boolean {
+      return state.device === 'mobile'
     },
 
     /**
      * 是否为暗黑模式
      */
-    isDark(): boolean {
-      return this.theme === 'dark'
+    isDark(state): boolean {
+      return state.theme === 'dark'
     }
   },
 
@@ -114,10 +115,6 @@ export const useAppStore = defineStore<'app', AppState, AppGetters, AppActions>(
   },
 
   // 持久化配置
-  persist: {
-    key: 'app-store',
-    storage: localStorage,
-    paths: ['sidebarOpened', 'theme']
-  }
+  persist: true
 })
 

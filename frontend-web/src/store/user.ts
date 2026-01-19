@@ -1,16 +1,14 @@
 import { defineStore } from 'pinia'
-import type { UserInfo, LoginResponse } from '@/types'
+import type { UserInfoVO, LoginResponse } from '@/api/user'
 
 /**
  * 用户状态接口
  */
 interface UserState {
   /** 用户信息 */
-  userInfo: UserInfo | null
+  userInfo: UserInfoVO | null
   /** 访问令牌 */
   accessToken: string
-  /** 刷新令牌 */
-  refreshToken: string
   /** 是否已登录 */
   isLogin: boolean
 }
@@ -19,13 +17,14 @@ interface UserState {
  * Getters 类型定义
  */
 interface UserGetters {
-  userId: number | undefined
-  username: string
-  nickname: string
-  avatar: string
-  email: string
-  phone: string
-  hasToken: boolean
+  userId: (state: UserState) => number | undefined
+  username: (state: UserState) => string
+  nickname: (state: UserState) => string
+  avatar: (state: UserState) => string
+  email: (state: UserState) => string
+  phone: (state: UserState) => string
+  hasToken: (state: UserState) => boolean
+  [key: string]: (state: UserState) => any
 }
 
 /**
@@ -33,8 +32,8 @@ interface UserGetters {
  */
 interface UserActions {
   setLoginInfo(data: LoginResponse): void
-  setUserInfo(userInfo: UserInfo): void
-  setToken(accessToken: string, refreshToken?: string): void
+  setUserInfo(userInfo: UserInfoVO): void
+  setToken(accessToken: string): void
   updateAvatar(avatar: string): void
   updateNickname(nickname: string): void
   logout(): void
@@ -47,7 +46,6 @@ export const useUserStore = defineStore<'user', UserState, UserGetters, UserActi
   state: (): UserState => ({
     userInfo: null,
     accessToken: '',
-    refreshToken: '',
     isLogin: false
   }),
 
@@ -55,50 +53,50 @@ export const useUserStore = defineStore<'user', UserState, UserGetters, UserActi
     /**
      * 用户ID
      */
-    userId(): number | undefined {
-      return this.userInfo?.id
+    userId(state): number | undefined {
+      return state.userInfo?.id
     },
 
     /**
      * 用户名
      */
-    username(): string {
-      return this.userInfo?.username || ''
+    username(state): string {
+      return state.userInfo?.username || ''
     },
 
     /**
      * 昵称
      */
-    nickname(): string {
-      return this.userInfo?.nickname || ''
+    nickname(state): string {
+      return state.userInfo?.nickname || ''
     },
 
     /**
      * 头像
      */
-    avatar(): string {
-      return this.userInfo?.avatar || ''
+    avatar(state): string {
+      return state.userInfo?.avatar || ''
     },
 
     /**
      * 邮箱
      */
-    email(): string {
-      return this.userInfo?.email || ''
+    email(state): string {
+      return state.userInfo?.email || ''
     },
 
     /**
      * 手机号
      */
-    phone(): string {
-      return this.userInfo?.phone || ''
+    phone(state): string {
+      return state.userInfo?.phone || ''
     },
 
     /**
      * Token是否有效
      */
-    hasToken(): boolean {
-      return !!this.accessToken
+    hasToken(state): boolean {
+      return !!state.accessToken
     }
   },
 
@@ -108,26 +106,22 @@ export const useUserStore = defineStore<'user', UserState, UserGetters, UserActi
      */
     setLoginInfo(data: LoginResponse): void {
       this.userInfo = data.userInfo
-      this.accessToken = data.accessToken
-      this.refreshToken = data.refreshToken
+      this.accessToken = data.token
       this.isLogin = true
     },
 
     /**
      * 更新用户信息
      */
-    setUserInfo(userInfo: UserInfo): void {
+    setUserInfo(userInfo: UserInfoVO): void {
       this.userInfo = userInfo
     },
 
     /**
      * 更新Token
      */
-    setToken(accessToken: string, refreshToken?: string): void {
+    setToken(accessToken: string): void {
       this.accessToken = accessToken
-      if (refreshToken) {
-        this.refreshToken = refreshToken
-      }
     },
 
     /**
@@ -154,16 +148,10 @@ export const useUserStore = defineStore<'user', UserState, UserGetters, UserActi
     logout(): void {
       this.userInfo = null
       this.accessToken = ''
-      this.refreshToken = ''
       this.isLogin = false
     }
   },
 
   // 持久化配置
-  persist: {
-    key: 'user-store',
-    storage: localStorage,
-    paths: ['userInfo', 'accessToken', 'refreshToken', 'isLogin']
-  }
+  persist: true
 })
-
