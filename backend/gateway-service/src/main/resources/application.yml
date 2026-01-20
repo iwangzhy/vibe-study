@@ -2,6 +2,12 @@ server:
   port: 8080
 
 spring:
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    database: 1
+    timeout: 5000ms
+
   cloud:
     gateway:
       discovery:
@@ -35,3 +41,12 @@ jwt:
 whitelist:
   paths:
     - /api/user/auth/**  # 所有认证相关接口（登录、注册、发送验证码等）
+
+# 限流配置
+rate-limit:
+  send-code:
+    enabled: true
+    short-limit: 1       # 短期限制：1分钟内最多1次
+    short-window: 60     # 短期窗口：60秒
+    long-limit: 5        # 长期限制：1小时内最多5次
+    long-window: 3600    # 长期窗口：3600秒（1小时）
