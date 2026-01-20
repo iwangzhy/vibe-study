@@ -114,7 +114,7 @@ const loginRules: FormRules = {
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度为6-20位', trigger: 'blur' }
+    // { min: 6, max: 20, message: '密码长度为6-20位', trigger: 'blur' }
   ]
 }
 

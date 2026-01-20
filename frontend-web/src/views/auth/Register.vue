@@ -174,11 +174,11 @@ const validateEmail = (_rule: any, value: any, callback: any) => {
 const validatePassword = (_rule: any, value: any, callback: any) => {
   if (!value) {
     callback(new Error('请输入密码'))
-  } else if (value.length < 6 || value.length > 20) {
+  }/* else if (value.length < 6 || value.length > 20) {
     callback(new Error('密码长度为6-20位'))
-  } else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]*$/.test(value)) {
+  }*//* else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]*$/.test(value)) {
     callback(new Error('密码必须包含字母和数字'))
-  } else {
+  }*/ else {
     callback()
   }
 }

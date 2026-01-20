@@ -278,9 +278,9 @@ const validatePassword = (_rule: any, value: any, callback: any) => {
     callback(new Error('请输入新密码'))
   } else if (value.length < 6 || value.length > 20) {
     callback(new Error('密码长度为 6-20 个字符'))
-  } else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/.test(value)) {
+  }/* else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/.test(value)) {
     callback(new Error('密码必须包含字母和数字'))
-  } else {
+  }*/ else {
     callback()
   }
 }
